@@ -105,6 +105,7 @@
     var scalesX = {}
     var scalesY = {}
     var yAxis = {}
+    var xAxis = {}
     var yScale = {}
     var xScale = {}
     var yDomain = []
@@ -180,7 +181,7 @@
             .range([0, desired_height_inches])
         
         xScale = d3.scaleLinear()
-            .domain([0, desired_width_inches])
+            .domain([0, Math.ceil(29991 / RhythmSamplesPerSecond)])
             .range([0, desired_width_inches])
 
         yAxis = vis.append("g")
@@ -211,10 +212,19 @@
             .style("stroke-width", 0.5)
         
         xAxis = vis.append("g")
-        .attr("transform", `translate(0,${height + margin.top})`)
+        .attr("transform", `translate(0,${height + margin.top - 10})`)
         .attr("class", "x axis")
-        .call(d3.axisBottom(xScale).ticks(4, "s"))
+        .call(d3.axisBottom(xScale).tickFormat(d => d + " сек"))
         
+        xAxis.selectAll(".tick line").remove()
+        xAxis.select(".domain").remove()
+        xAxis.selectAll(".tick path").remove()
+        
+        xAxis.selectAll(".tick")
+        .append('path')
+        .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
+        .attr("transform", "translate(0, 25)")
+        .style("fill", "black");
 
         vis.append("rect")
             .attr("width", width )
@@ -273,7 +283,9 @@
         .attr("x", - lastEventTransform.x) 
         .attr("y", - lastEventTransform.y);
          var newY = d3.event.transform.rescaleY(yScale);
+         var newX = d3.event.transform.rescaleX(xScale);
          yAxis.call(d3.axisLeft(newY).tickValues(yDomain.map(d => d.offset)))
+   
          yAxis.selectAll(".tick text").remove()
          yAxis.select(".domain").remove()
         yAxis.selectAll(".tick")
@@ -284,6 +296,18 @@
             .style("text-anchor", "middle")
             .attr("dominant-baseline", "middle")
             .style("stroke-width", 0.5)
+
+
+            xAxis.call(d3.axisBottom(newX).tickFormat(d => d + " сек"))
+         xAxis.selectAll(".tick line").remove()
+        xAxis.select(".domain").remove()
+        xAxis.selectAll(".tick path").remove()
+        xAxis.selectAll(".tick")
+        .append('path')
+        .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
+        .attr("transform", "translate(0, 25)")
+        .style("fill", "black");
+
     }
 
     function val() {
