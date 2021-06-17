@@ -27,7 +27,7 @@
     </style>
 </head>
 
-<body onload="plot()">
+<body onload="val()">
     <select name="x" id="select_x" onchange="val()">
         <option value="12.5">12.5 мм/с</option>
         <option value="25" selected>25 мм/с</option>
@@ -286,11 +286,13 @@
     }
 
     function val() {
-        d3.json("https://idianov.github.io/cardio/data.json", json => {
-            RhythmSamplesPerSecond = json.RhythmSamplesPerSecond;
-            RhythmAVM = json.RhythmAVM;
+        d3.json("https://idianov.github.io/cardio/data.json",function( error,json ) {
+            if (error) throw error;
+            console.log(json)
+            RhythmSamplesPerSecond = json.rhythmSamplesPerSecond;
+            RhythmAVM = json.rhythmAVM;
             data = json.data;
-            plot();
+            //plot();
         })
     };
 
