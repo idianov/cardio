@@ -111,6 +111,7 @@
 
     function plot() {
         d3.selectAll("svg").remove();
+        yDomain = []
         
         mm_Per_s = document.getElementById("select_x").value;
         mm_Per_mV = document.getElementById("select_y").value;
@@ -249,7 +250,7 @@
         
         var zoom = d3.zoom()
             
-          .scaleExtent([1, 20])  // This control how much you can unzoom (x0.5) and zoom (x20)
+          .scaleExtent([0.5, 100])  // This control how much you can unzoom (x0.5) and zoom (x20)
           .translateExtent([[0,0], [desired_width_inches, desired_height_inches]])
           .extent([[0, 0], [width,height]])
           .on("zoom", updateChart);
