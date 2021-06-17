@@ -6,7 +6,7 @@
     <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
     <style>
-       /* #content {
+        /* #content {
             display: block;
             position: fixed;
             width: 960px;
@@ -23,7 +23,6 @@
             display: block;
 
         } */
-
     </style>
 </head>
 
@@ -66,7 +65,7 @@
     </select>
 
     <div id="chart"></div>
-    
+
 </body>
 
 <script>
@@ -80,24 +79,24 @@
 
     var distanceBetweenLeads = 5 * DpmX;
 
-    var margin = {top: 10, right: 30, bottom: 30, left: 60},
+    var margin = { top: 10, right: 30, bottom: 30, left: 60 },
         width = 460 - margin.left - margin.right,
         height = 400 - margin.top - margin.bottom;
 
     /*Parameters*/
     var mm_Per_s = 25;
     var mm_Per_mV = 10;
-    
+
     /* SCP */
     var RhythmSamplesPerSecond = 500;
     var RhythmAVM = 5;
     var data = {}
 
-    
+
 
     var Inch_Per_s = mm_Per_s * Inch_Per_mm
     var fPixel_Per_s = Inch_Per_s * DpiX
-        
+
     var Inch_Per_uV = mm_Per_mV * Inch_Per_mm * 0.001
     var fPixel_Per_uV = Inch_Per_uV * DpiY
 
@@ -113,7 +112,7 @@
     function plot() {
         d3.selectAll("svg").remove();
         yDomain = []
-        
+
         mm_Per_s = document.getElementById("select_x").value;
         mm_Per_mV = document.getElementById("select_y").value;
         background = document.getElementById("select_background").value;
@@ -124,72 +123,69 @@
 
         Inch_Per_s = mm_Per_s * Inch_Per_mm
         fPixel_Per_s = Inch_Per_s * DpiX
-            
+
         Inch_Per_uV = mm_Per_mV * Inch_Per_mm * 0.001
         fPixel_Per_uV = Inch_Per_uV * DpiY
-    
+
 
         var desired_width_start_inches = Number.MAX_VALUE
         var desired_width_end_inches = Number.MIN_VALUE
         var desired_height_inches = 0
-        
+
 
         vis = d3.select('#chart')
             .append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom)
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
             .append("g")
-                .attr("transform",
-                    "translate(" + margin.left + "," + margin.top + ")");
+            .attr("transform",
+                "translate(" + margin.left + "," + margin.top + ")");
 
         let yRangeStart = 0;
-        
-        for (var key in data){
+
+        for (var key in data) {
             const d = data[key]
-            let maxY = d.max * fPixel_Per_uV * RhythmAVM 
-            let minY = d.min * fPixel_Per_uV * RhythmAVM 
-            
+            let maxY = d.max * fPixel_Per_uV * RhythmAVM
+            let minY = d.min * fPixel_Per_uV * RhythmAVM
+
             let maxX = d.rhythmEnd * fPixel_Per_s / RhythmSamplesPerSecond
             let minX = d.rhythmStart * fPixel_Per_s / RhythmSamplesPerSecond
-            
-            let x = d3.scaleLinear().domain([minX, maxX]).range([d.rhythmStart * fPixel_Per_s/ RhythmSamplesPerSecond, d.rhythmEnd * fPixel_Per_s/ RhythmSamplesPerSecond])
+
+            let x = d3.scaleLinear().domain([minX, maxX]).range([d.rhythmStart * fPixel_Per_s / RhythmSamplesPerSecond, d.rhythmEnd * fPixel_Per_s / RhythmSamplesPerSecond])
             let yRangeEnd = (d.max - d.min) * fPixel_Per_uV * RhythmAVM
             let y = d3.scaleLinear().domain([minY, maxY]).range([desired_height_inches + yRangeEnd, desired_height_inches])
-            
+
             let valueline = d3.line()
                 .x(function (d, i) { return x(i * fPixel_Per_s / RhythmSamplesPerSecond); })
-                .y(function (d) { return y(d * fPixel_Per_uV * RhythmAVM ); });
+                .y(function (d) { return y(d * fPixel_Per_uV * RhythmAVM); });
 
             scalesX[key] = x
             scalesY[key] = y
             leads[key] = valueline
-            yOffset = (d.max - d.min) * fPixel_Per_uV * RhythmAVM + distanceBetweenLeads 
+            yOffset = (d.max - d.min) * fPixel_Per_uV * RhythmAVM + distanceBetweenLeads
             yDomain.push({ offset: desired_height_inches + yOffset / 2, text: key })
             desired_height_inches += yOffset;
             desired_width_start_inches = Math.min(d.rhythmStart * fPixel_Per_s / RhythmSamplesPerSecond, desired_width_start_inches)
             desired_width_end_inches = Math.max(d.rhythmEnd * fPixel_Per_s / RhythmSamplesPerSecond, desired_width_end_inches)
             yRangeStart = yRangeEnd
-            
+
         }
         var desired_width_inches = desired_width_end_inches - desired_width_start_inches
-        
-        w = DpiX * desired_width_inches
-        h = DpiY * desired_height_inches
 
         yScale = d3.scaleLinear()
             .domain([0, desired_height_inches])
             .range([0, desired_height_inches])
-        
+
         xScale = d3.scaleLinear()
             .domain([0, Math.ceil(29991 / RhythmSamplesPerSecond)])
-            .range([0, desired_width_inches])
+            .range([0, Math.ceil(29991 / RhythmSamplesPerSecond) * fPixel_Per_s])
 
         yAxis = vis.append("g")
             .attr("class", "y axis")
             .call(d3.axisLeft(yScale)
                 .tickValues(yDomain.map(d => d.offset))
-                )
-            
+            )
+
         yAxis.selectAll(".tick line").remove()
         yAxis.select(".domain").remove()
         yAxis.selectAll(".tick")
@@ -199,55 +195,56 @@
             .attr("fill", "#F5F5F5")
             .attr("x", -36)
             .attr("y", -20)
-            .style("z-index","-1")
-        
+            .style("z-index", "-1")
+
         yAxis.selectAll(".tick text").remove()
         yAxis.selectAll(".tick")
             .append("text")
-            .text((_,i) => yDomain[i].text)
+            .text((_, i) => yDomain[i].text)
             .attr("x", -20)
             .attr("stroke", "black")
             .style("text-anchor", "middle")
             .attr("dominant-baseline", "middle")
             .style("stroke-width", 0.5)
-        
+
         xAxis = vis.append("g")
-        .attr("transform", `translate(0,${height + margin.top - 10})`)
-        .attr("class", "x axis")
-        .call(d3.axisBottom(xScale).tickFormat(d => d + " сек"))
-        
+            .attr("transform", `translate(0,${height + margin.top - 10})`)
+            .attr("class", "x axis")
+            .call(d3.axisBottom(xScale).tickFormat(d => d + " сек"))
+
         xAxis.selectAll(".tick line").remove()
         xAxis.select(".domain").remove()
         xAxis.selectAll(".tick path").remove()
-        
+
         xAxis.selectAll(".tick")
-        .append('path')
-        .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
-        .attr("transform", "translate(0, 25)")
-        .style("fill", "black");
+            .append('path')
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
+            .attr("transform", "translate(0, 25)")
+            .style("fill", "black");
+
 
         vis.append("rect")
-            .attr("width", width )
-            .attr("height",  height)
+            .attr("width", width)
+            .attr("height", height)
             .attr("fill", background);
 
         var clip = vis.append("clipPath")
-          .attr("id", "clip")
-          
-          .append("SVG:rect")
-          .attr("width", width)
-          .attr("height",  height)
-          .attr("x", 0)
-          .attr("y", 0)
-          .style("fill", "none")
+            .attr("id", "clip")
 
-        
+            .append("SVG:rect")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("x", 0)
+            .attr("y", 0)
+            .style("fill", "none")
+
+
         var scatter = vis.append('g')
             .attr("id", "viewport")
             .attr("clip-path", "url(#clip)")
 
-        
-        for (key in data){
+
+        for (key in data) {
             scatter.append("path")
                 .attr("class", "line")
                 .attr("lead", key)
@@ -257,40 +254,87 @@
                 .attr("stroke-width", thickness);
         }
 
-        
+        drawGrid(null)
+
+
         var zoom = d3.zoom()
-            
-          .scaleExtent([0.5, 100])  // This control how much you can unzoom (x0.5) and zoom (x20)
-          .translateExtent([[0,0], [desired_width_inches, desired_height_inches]])
-          .extent([[0, 0], [width,height]])
-          .on("zoom", updateChart);
+
+            .scaleExtent([0.5, 100])  // This control how much you can unzoom (x0.5) and zoom (x20)
+            .translateExtent([[0, 0], [desired_width_inches, desired_height_inches]])
+            .extent([[0, 0], [width, height]])
+            .on("zoom", updateChart);
 
         vis.append("rect")
             .attr("width", width)
-            .attr("height",  height)
-          .style("fill", "none")
-          .style("pointer-events", "all")
-          .call(zoom);
+            .attr("height", height)
+            .style("fill", "none")
+            .style("pointer-events", "all")
+            .call(zoom);
+    }
+
+    function drawGrid(lastEventTransform){
+        vis = d3.select('svg g')
+
+        vis.selectAll("line").remove()
+        
+        xGridScale = d3.scaleLinear()
+            .domain([0, width])
+            .range([0, width])
+
+        xAxis5mm = d3.axisBottom(xGridScale)
+            .tickSizeInner(-height)
+            .tickValues(Array.from({ length: Math.ceil(width / DpmX / 5) }, (_, i) => i * 5 * DpmX));
+
+        let xGrid5mm = vis.append("g")
+            .attr("class", "x axis 5mm")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis5mm)
+            .attr("fill", "none")
+            .attr("stroke", gridColor)
+            .attr("stroke-width", 0.5);
+
+        xGrid5mm.selectAll("line").attr("stroke", gridColor)
+        xGrid5mm.selectAll("text").remove()
+        xGrid5mm.select(".domain").remove()
+
+        yGridScale = d3.scaleLinear()
+            .domain([height, 0])
+            .range([height, 0])
+
+        yAxis5mm = d3.axisLeft(yGridScale)
+            .tickSizeInner(-width)
+            .tickValues(Array.from({ length: Math.ceil(height / DpmY / 5) }, (_, i) => (i * 5) * DpmY));
+
+        let yGrid5mm = vis.append("g")
+            .attr("class", "y axis 5mm")
+            .call(yAxis5mm)
+            .attr("fill", "none")
+            .attr("stroke", gridColor)
+            .attr("stroke-width", 0.5);
+
+        yGrid5mm.selectAll("line").attr("stroke", gridColor)
+        yGrid5mm.selectAll("text").remove()
+        yGrid5mm.select(".domain").remove()
     }
 
     function updateChart() {
         lastEventTransform = d3.event.transform;
         d3.select("#viewport").attr("transform",
-            "translate(" + lastEventTransform.x + ", "+lastEventTransform.y+")"
+            "translate(" + lastEventTransform.x + ", " + lastEventTransform.y + ")"
             + " scale(" + lastEventTransform.k + ")");
         d3.select("#clip").select("rect")
-        .attr("transform", "scale(" + 1/lastEventTransform.k + ")")
-        .attr("x", - lastEventTransform.x) 
-        .attr("y", - lastEventTransform.y);
-         var newY = d3.event.transform.rescaleY(yScale);
-         var newX = d3.event.transform.rescaleX(xScale);
-         yAxis.call(d3.axisLeft(newY).tickValues(yDomain.map(d => d.offset)))
-   
-         yAxis.selectAll(".tick text").remove()
-         yAxis.select(".domain").remove()
+            .attr("transform", "scale(" + 1 / lastEventTransform.k + ")")
+            .attr("x", - lastEventTransform.x)
+            .attr("y", - lastEventTransform.y);
+        var newY = d3.event.transform.rescaleY(yScale);
+        var newX = d3.event.transform.rescaleX(xScale);
+        yAxis.call(d3.axisLeft(newY).tickValues(yDomain.map(d => d.offset)))
+
+        yAxis.selectAll(".tick text").remove()
+        yAxis.select(".domain").remove()
         yAxis.selectAll(".tick")
             .append("text")
-            .text((_,i) => yDomain[i].text)
+            .text((_, i) => yDomain[i].text)
             .attr("x", -20)
             .attr("stroke", "black")
             .style("text-anchor", "middle")
@@ -298,20 +342,20 @@
             .style("stroke-width", 0.5)
 
 
-            xAxis.call(d3.axisBottom(newX).tickFormat(d => d + " сек"))
-         xAxis.selectAll(".tick line").remove()
+        xAxis.call(d3.axisBottom(newX).tickFormat(d => d + " сек"))
+        xAxis.selectAll(".tick line").remove()
         xAxis.select(".domain").remove()
         xAxis.selectAll(".tick path").remove()
         xAxis.selectAll(".tick")
-        .append('path')
-        .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
-        .attr("transform", "translate(0, 25)")
-        .style("fill", "black");
+            .append('path')
+            .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
+            .attr("transform", "translate(0, 25)")
+            .style("fill", "black");
 
     }
 
     function val() {
-        d3.json("https://idianov.github.io/cardio/data.json",function( error,json ) {
+        d3.json("https://idianov.github.io/cardio/data.json", function (error, json) {
             if (error) throw error;
             console.log(json)
             RhythmSamplesPerSecond = json.rhythmSamplesPerSecond;
