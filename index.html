@@ -172,6 +172,40 @@
         }
         var desired_width_inches = desired_width_end_inches - desired_width_start_inches
 
+        
+
+
+        vis.append("rect")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("fill", background);
+
+        var clip = vis.append("clipPath")
+            .attr("id", "clip")
+
+            .append("SVG:rect")
+            .attr("width", width)
+            .attr("height", height)
+            .attr("x", 0)
+            .attr("y", 0)
+            .style("fill", "none")
+
+
+        var scatter = vis.append('g')
+            .attr("id", "viewport")
+            .attr("clip-path", "url(#clip)")
+
+
+        for (key in data) {
+            scatter.append("path")
+                .attr("class", "line")
+                .attr("lead", key)
+                .attr("d", leads[key](data[key].data))
+                .attr("fill", "none")
+                .attr("stroke", signalColor)
+                .attr("stroke-width", thickness);
+        }
+
         yScale = d3.scaleLinear()
             .domain([0, desired_height_inches])
             .range([0, desired_height_inches])
@@ -222,38 +256,6 @@
             .attr("transform", "translate(0, 25)")
             .style("fill", "black");
 
-
-        vis.append("rect")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("fill", background);
-
-        var clip = vis.append("clipPath")
-            .attr("id", "clip")
-
-            .append("SVG:rect")
-            .attr("width", width)
-            .attr("height", height)
-            .attr("x", 0)
-            .attr("y", 0)
-            .style("fill", "none")
-
-
-        var scatter = vis.append('g')
-            .attr("id", "viewport")
-            .attr("clip-path", "url(#clip)")
-
-
-        for (key in data) {
-            scatter.append("path")
-                .attr("class", "line")
-                .attr("lead", key)
-                .attr("d", leads[key](data[key].data))
-                .attr("fill", "none")
-                .attr("stroke", signalColor)
-                .attr("stroke-width", thickness);
-        }
-
         drawGrid(null)
 
 
@@ -273,20 +275,38 @@
     }
 
     function drawGrid(lastEventTransform){
+        
+
+        scaleFactor = 1;
+        if (lastEventTransform)
+            scaleFactor = lastEventTransform.k
+
+
+        if (lastEventTransform && scaleFactor === 1)
+            return
+
         vis = d3.select('svg g')
 
-        vis.selectAll("line").remove()
-        
         xGridScale = d3.scaleLinear()
             .domain([0, width])
             .range([0, width])
 
+        yGridScale = d3.scaleLinear()
+            .domain([height, 0])
+            .range([height, 0])
+
+        vis.selectAll(".xaxis5mm").remove()
+        vis.selectAll(".yaxis5mm").remove()
+        vis.selectAll(".xaxis1mm").remove()
+        vis.selectAll(".yaxis1mm").remove()
+
+
         xAxis5mm = d3.axisBottom(xGridScale)
             .tickSizeInner(-height)
-            .tickValues(Array.from({ length: Math.ceil(width / DpmX / 5) }, (_, i) => i * 5 * DpmX));
+            .tickValues(Array.from({ length: Math.ceil(width / DpmX / 5 / scaleFactor) }, (_, i) => i * 5 * DpmX * scaleFactor));
 
         let xGrid5mm = vis.append("g")
-            .attr("class", "x axis 5mm")
+            .attr("class", "xaxis5mm")
             .attr("transform", "translate(0," + height + ")")
             .call(xAxis5mm)
             .attr("fill", "none")
@@ -297,16 +317,12 @@
         xGrid5mm.selectAll("text").remove()
         xGrid5mm.select(".domain").remove()
 
-        yGridScale = d3.scaleLinear()
-            .domain([height, 0])
-            .range([height, 0])
-
         yAxis5mm = d3.axisLeft(yGridScale)
             .tickSizeInner(-width)
-            .tickValues(Array.from({ length: Math.ceil(height / DpmY / 5) }, (_, i) => (i * 5) * DpmY));
+            .tickValues(Array.from({ length: Math.ceil(height / DpmY / 5 / scaleFactor) }, (_, i) => (i * 5) * DpmY * scaleFactor));
 
         let yGrid5mm = vis.append("g")
-            .attr("class", "y axis 5mm")
+            .attr("class", "yaxis5mm")
             .call(yAxis5mm)
             .attr("fill", "none")
             .attr("stroke", gridColor)
@@ -315,6 +331,39 @@
         yGrid5mm.selectAll("line").attr("stroke", gridColor)
         yGrid5mm.selectAll("text").remove()
         yGrid5mm.select(".domain").remove()
+
+        if (grid === '1') {
+            xAxis1mm = d3.axisBottom(xGridScale)
+                .tickSizeInner(-height)
+                .tickValues(Array.from({ length: Math.ceil(width / DpmX / scaleFactor) }, (_, i) => i  * DpmX * scaleFactor));
+
+            let xGrid1mm = vis.append("g")
+                .attr("class", "xaxis1mm")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis1mm)
+                .attr("fill", "none")
+                .attr("stroke", gridColor)
+                .attr("stroke-width", 0.2);
+
+            xGrid1mm.selectAll("line").attr("stroke", gridColor)
+            xGrid1mm.selectAll("text").remove()
+            xGrid1mm.select(".domain").remove()
+
+            yAxis1mm = d3.axisLeft(yGridScale)
+                .tickSizeInner(-width)
+                .tickValues(Array.from({ length: Math.ceil(height / DpmY / scaleFactor) }, (_, i) => i * DpmY * scaleFactor));
+
+            let yGrid1mm = vis.append("g")
+                .attr("class", "yaxis1mm")
+                .call(yAxis1mm)
+                .attr("fill", "none")
+                .attr("stroke", gridColor)
+                .attr("stroke-width", 0.2);
+
+            yGrid1mm.selectAll("line").attr("stroke", gridColor)
+            yGrid1mm.selectAll("text").remove()
+            yGrid1mm.select(".domain").remove()
+        }
     }
 
     function updateChart() {
@@ -326,8 +375,8 @@
             .attr("transform", "scale(" + 1 / lastEventTransform.k + ")")
             .attr("x", - lastEventTransform.x)
             .attr("y", - lastEventTransform.y);
-        var newY = d3.event.transform.rescaleY(yScale);
-        var newX = d3.event.transform.rescaleX(xScale);
+        var newY = lastEventTransform.rescaleY(yScale);
+        var newX = lastEventTransform.rescaleX(xScale);
         yAxis.call(d3.axisLeft(newY).tickValues(yDomain.map(d => d.offset)))
 
         yAxis.selectAll(".tick text").remove()
@@ -351,7 +400,8 @@
             .attr("d", d3.symbol().type(d3.symbolTriangle).size(20))
             .attr("transform", "translate(0, 25)")
             .style("fill", "black");
-
+        
+        drawGrid(lastEventTransform)
     }
 
     function val() {
