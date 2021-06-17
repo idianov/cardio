@@ -6,27 +6,16 @@
     <script src="https://d3js.org/d3.v4.min.js" charset="utf-8"></script>
     <!-- <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> -->
     <style>
-        /* #content {
-            display: block;
-            position: fixed;
-            width: 960px;
-            height: 470px;
-            overflow: hidden;
-        }/*
+        
         #chart {
-            overflow-y: scroll;
-            height: 100%;     
+            margin-top: 10;     
         }
-        #xaxis {
-            overflow: auto;
-            position: absolute;
-            display: block;
-
-        } */
+        
     </style>
 </head>
 
 <body onload="val()">
+    <div>
     <select name="x" id="select_x" onchange="plot()">
         <option value="12.5">12.5 мм/с</option>
         <option value="25" selected>25 мм/с</option>
@@ -63,7 +52,7 @@
         <option value="0.2">0.2 мм</option>
         <option value="0.5" selected>0.5 мм</option>
     </select>
-
+</div>
     <div id="chart"></div>
 
 </body>
@@ -79,7 +68,7 @@
 
     var distanceBetweenLeads = 5 * DpmX;
 
-    var margin = { top: 10, right: 30, bottom: 30, left: 60 },
+    var margin = { top: 0, right: 0, bottom: 30, left: 60 },
         width = 460 - margin.left - margin.right,
         height = 400 - margin.top - margin.bottom;
 
@@ -242,7 +231,7 @@
             .style("stroke-width", 0.5)
 
         xAxis = vis.append("g")
-            .attr("transform", `translate(0,${height + margin.top - 10})`)
+            .attr("transform", `translate(0,${height + margin.top - 5})`)
             .attr("class", "x axis")
             .call(d3.axisBottom(xScale).tickFormat(d => d + " сек"))
 
