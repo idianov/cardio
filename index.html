@@ -28,39 +28,39 @@
 </head>
 
 <body onload="val()">
-    <select name="x" id="select_x" onchange="val()">
+    <select name="x" id="select_x" onchange="plot()">
         <option value="12.5">12.5 мм/с</option>
         <option value="25" selected>25 мм/с</option>
         <option value="50">50 мм/с</option>
         <option value="100">100 мм/с</option>
     </select>
-    <select name="y" id="select_y" onchange="val()">
+    <select name="y" id="select_y" onchange="plot()">
         <option value="5">5 мм/мВ</option>
         <option value="10" selected>10 мм/мВ</option>
         <option value="20">20 мм/мВ</option>
         <option value="40">40 мм/мВ</option>
     </select>
-    <select name="background" id="select_background" onchange="val()">
+    <select name="background" id="select_background" onchange="plot()">
         <option value="black">Черный</option>
         <option value="pink" selected>Розовый</option>
         <option value="grey">Серый</option>
     </select>
-    <select name="grid" id="select_grid" onchange="val()">
+    <select name="grid" id="select_grid" onchange="plot()">
         <option value="1" selected>1 мм</option>
         <option value="2">5 мм</option>
     </select>
-    <select name="grid_color" id="select_grid_color" onchange="val()">
+    <select name="grid_color" id="select_grid_color" onchange="plot()">
         <option value="red" selected>Красный</option>
         <option value="black">Черный</option>
     </select>
-    <select name="signal_color" id="select_signal_color" onchange="val()">
+    <select name="signal_color" id="select_signal_color" onchange="plot()">
         <option value="black" selected>Черный</option>
         <option value="blue">Синий</option>
         <option value="red">Красный</option>
         <option value="green">Зелёный</option>
         <option value="grey">Серый</option>
     </select>
-    <select name="thickness" id="select_thickness" onchange="val()">
+    <select name="thickness" id="select_thickness" onchange="plot()">
         <option value="0.2">0.2 мм</option>
         <option value="0.5" selected>0.5 мм</option>
     </select>
@@ -292,7 +292,7 @@
             RhythmSamplesPerSecond = json.rhythmSamplesPerSecond;
             RhythmAVM = json.rhythmAVM;
             data = json.data;
-            //plot();
+            plot();
         })
     };
 
